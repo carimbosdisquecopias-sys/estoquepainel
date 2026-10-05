@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#151a3b" />
+    <title>Relatório | Estoque de Carimbos</title>
+    <link rel="icon" type="image/png" href="public/logo-disque-copias.png?v=20260731-34" />
+    <link rel="stylesheet" href="relatorio.css?v=20260915-02" />
+  </head>
+  <body>
+    <div class="report-toolbar" aria-label="Ações do relatório">
+      <button class="toolbar-button secondary" id="backButton" type="button">
+        <span class="toolbar-icon icon-back" aria-hidden="true"></span>
+        Voltar ao painel
+      </button>
+      <button class="toolbar-button primary" id="printButton" type="button">
+        <span class="toolbar-icon icon-print" aria-hidden="true"></span>
+        Imprimir página
+      </button>
+    </div>
+
+    <main class="report-page" id="reportPage">
+      <header class="report-header">
+        <div class="brand-lockup">
+          <img src="public/logo-disque-copias.png" alt="Disque Cópias" />
+          <div>
+            <p>DISQUE CÓPIAS · CONTROLE INTERNO</p>
+            <h1 id="reportTitle">Carregando relatório</h1>
+            <span id="reportSubtitle">Aguarde um instante.</span>
+          </div>
+        </div>
+        <div class="report-generated">
+          <small>GERADO EM</small>
+          <strong id="generatedAt"></strong>
+        </div>
+      </header>
+
+      <section class="report-filters" id="historyDateFilters" aria-label="Filtrar histórico por período" hidden>
+        <div class="filter-heading">
+          <small>FILTRAR POR PERÍODO</small>
+          <strong id="historyPeriodLabel">Todo o período</strong>
+        </div>
+        <div class="date-range-fields">
+          <label><input id="historyStartDate" type="date" aria-label="Data inicial" /></label>
+          <span class="date-range-separator">até</span>
+          <label><input id="historyEndDate" type="date" aria-label="Data final" /></label>
+        </div>
+        <div class="date-range-action">
+          <button type="button" class="apply-period-button" id="applyHistoryPeriod">Aplicar</button>
+        </div>
+        <small id="periodFilterError" role="status"></small>
+      </section>
+
+      <section class="summary-grid" id="summaryGrid" aria-label="Resumo do relatório"></section>
+      <section class="report-content" id="reportContent" aria-live="polite">
+        <div class="report-state">
+          <span class="loading-mark" aria-hidden="true"></span>
+          <strong>Preparando as informações...</strong>
+        </div>
+      </section>
+
+      <footer class="report-footer">
+        <span>Disque Cópias · Estoque de Carimbos</span>
+        <span>Relatório interno</span>
+      </footer>
+    </main>
+
+    <dialog class="report-image-dialog" id="reportImageDialog" aria-labelledby="reportImageTitle">
+      <div class="report-image-dialog-content">
+        <button class="report-image-close" id="closeReportImage" type="button" aria-label="Fechar imagem">
+          <span class="report-close-icon" aria-hidden="true"></span>
+        </button>
+        <img id="reportImagePreview" alt="" />
+        <div class="report-image-caption">
+          <strong id="reportImageTitle"></strong>
+          <span id="reportImageMeasure"></span>
+        </div>
+      </div>
+    </dialog>
+
+    <script src="relatorio.js?v=20260903-03"></script>
+  </body>
+</html>

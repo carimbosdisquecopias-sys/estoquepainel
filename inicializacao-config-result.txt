@@ -1,0 +1,5 @@
+﻿Tarefa: Estoque Disque Copias
+Executavel: C:\Users\xerox\AppData\Local\Python\bin\python.exe
+Servidor: C:\Users\xerox\Desktop\Estoque\sistema-web\server.py
+Inicializacao: ao entrar no Windows
+Conta: DESKTOP-CV3UAE3\xerox

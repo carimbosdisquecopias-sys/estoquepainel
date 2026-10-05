@@ -1,0 +1,9 @@
+﻿Regras de bloqueio removidas: 2
+Regra criada: Estoque Disque Copias - TCP 8090
+Habilitada: True
+Direcao: Inbound
+Acao: Allow
+Perfil: Private
+Protocolo: TCP
+Porta local: 8090
+Programa: C:\Users\xerox\AppData\Local\Python\bin\python.exe

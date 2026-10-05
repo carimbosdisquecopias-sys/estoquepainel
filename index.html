@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#151a3b" />
+    <title>Estoque de Carimbos</title>
+    <link rel="icon" type="image/png" sizes="1254x1254" href="public/logo-disque-copias.png?v=20260731-34" />
+    <link rel="shortcut icon" type="image/png" href="public/logo-disque-copias.png?v=20260731-34" />
+    <link rel="apple-touch-icon" href="public/logo-disque-copias.png?v=20260731-34" />
+    <link rel="stylesheet" href="styles.css?v=20260915-05" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="logo-frame">
+            <img src="public/logo-disque-copias.png" alt="Disque Cópias" />
+          </div>
+          <div><strong>Estoque de Carimbos</strong><small>Disque Cópias</small></div>
+        </div>
+        <nav aria-label="Navegação principal">
+          <button class="nav-item active" data-view="dashboard"><span class="ui-icon icon-dashboard"></span>Painel</button>
+          <button class="nav-item" data-view="products"><span class="ui-icon icon-package"></span>Produtos</button>
+          <button class="nav-item" data-view="movements"><span class="ui-icon icon-history"></span>Histórico</button>
+          <button class="nav-item" id="registrationNavButton" data-view="registrations" hidden><span class="ui-icon icon-settings"></span>Cadastro</button>
+        </nav>
+        <div class="sidebar-foot">
+          <span class="status-dot offline" id="systemStatusDot" role="status" aria-label="Sistema inativo" title="Sistema inativo"></span>
+          <div><strong>Sistema interno</strong><small>Banco compartilhado na rede</small></div>
+          <button class="performance-mode-button" id="performanceModeButton" type="button" aria-label="Ativar modo desempenho" aria-pressed="false"><span class="ui-icon icon-gauge" aria-hidden="true"></span></button>
+        </div>
+      </aside>
+
+      <main>
+        <header class="topbar">
+          <button class="menu-button icon-only" id="menuButton" aria-label="Abrir menu" data-tooltip="Abrir menu"><span class="ui-icon icon-menu"></span></button>
+          <div>
+            <p class="eyebrow">DISQUE CÓPIAS · CONTROLE INTERNO</p>
+            <h1 id="pageTitle">Visão geral do estoque</h1>
+          </div>
+          <div class="header-actions">
+            <button class="button primary" id="newMovementButton"><span class="ui-icon icon-transfer"></span>Nova movimentação</button>
+          </div>
+        </header>
+
+        <section class="view active" id="dashboardView">
+          <div class="date-line" id="dateLine"></div>
+          <div class="metric-grid">
+            <article class="metric">
+              <div class="metric-icon green"><span class="ui-icon icon-package"></span></div>
+              <div><span>Itens cadastrados</span><strong id="metricProducts">0</strong><small>produtos e variações</small></div>
+            </article>
+            <article class="metric">
+              <div class="metric-icon blue"><span class="ui-icon icon-packages"></span></div>
+              <div><span>Unidades em estoque</span><strong id="metricUnits">0</strong><small>saldo disponível</small></div>
+            </article>
+            <article class="metric warning">
+              <div class="metric-icon amber"><span class="ui-icon icon-users"></span></div>
+              <div><span>Atendentes</span><strong id="metricSellers">0</strong><small>cadastrados</small></div>
+            </article>
+            <article class="metric danger">
+              <div class="metric-icon red"><span class="ui-icon icon-alert"></span></div>
+              <div><span>Produtos zerados</span><strong id="metricZero">0</strong><small>modelos sem estoque</small></div>
+            </article>
+          </div>
+
+          <div class="dashboard-grid">
+            <article class="panel attention-panel">
+              <div class="panel-heading">
+                <div><p class="eyebrow">ATENÇÃO</p><h2>Produtos sem estoque</h2></div>
+                <button class="text-button" id="openZeroStockButton">Ver todos<span class="ui-icon icon-arrow-right"></span></button>
+              </div>
+              <div id="lowStockList" class="stock-list"></div>
+            </article>
+            <article class="panel">
+              <div class="panel-heading">
+                <div><p class="eyebrow">ATIVIDADE</p><h2>Últimas movimentações</h2></div>
+                <button class="text-button" data-go="movements">Histórico<span class="ui-icon icon-arrow-right"></span></button>
+              </div>
+              <div id="recentMovements" class="movement-list"></div>
+            </article>
+          </div>
+
+          <article class="panel categories-panel">
+            <div class="panel-heading"><div><p class="eyebrow">DISTRIBUIÇÃO</p><h2>Estoque por categoria</h2></div></div>
+            <div id="categoryBars" class="category-bars"></div>
+          </article>
+        </section>
+
+        <section class="view" id="productsView">
+          <div class="toolbar">
+            <label class="search-box"><span class="ui-icon icon-filter"></span><input id="productSearch" type="search" placeholder="Buscar modelo, medida, cor ou categoria..." /></label>
+            <div class="filter-select product-filter-select" id="categoryFilterDropdown">
+              <select id="categoryFilter" class="visually-hidden" aria-hidden="true" tabindex="-1">
+                <option value="">Todas as categorias</option>
+              </select>
+              <button class="filter-trigger" id="categoryFilterTrigger" type="button" aria-haspopup="listbox" aria-expanded="false">
+                <span class="filter-trigger-icon category"><span class="ui-icon icon-category"></span></span>
+                <span class="filter-trigger-copy"><small>Filtrar produtos</small><strong id="categoryFilterLabel">Todas as categorias</strong></span>
+                <span class="filter-chevron" aria-hidden="true"></span>
+              </button>
+              <div class="filter-menu category-filter-menu" id="categoryFilterMenu" role="listbox" aria-label="Filtrar produtos por categoria"></div>
+            </div>
+          </div>
+          <div class="panel table-panel">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th class="order-column" aria-label="Ordem"></th><th>Produto</th><th>Categoria</th><th>Cores e saldos</th><th>Medida</th><th>Saldo total</th><th>Situação</th><th></th></tr></thead>
+                <tbody id="productsTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="movementsView">
+          <div class="section-actions">
+            <p id="historyDescription">O histórico registra entradas, saídas e estornos.</p>
+            <div class="history-view-switch" role="group" aria-label="Escolher visualização do Histórico">
+              <button class="active" type="button" data-history-display="table" aria-pressed="true"><span class="ui-icon icon-history"></span>Registros</button>
+              <button type="button" data-history-display="summary" aria-pressed="false"><span class="ui-icon icon-chart"></span>Resumo</button>
+            </div>
+            <div class="history-actions">
+              <div class="filter-select" id="historyFilterDropdown">
+                <select id="historyFilter" class="visually-hidden" aria-hidden="true" tabindex="-1">
+                  <option value="">Todos os registros</option>
+                  <option value="entrada">Entrada de carimbos</option>
+                  <option value="saida">Saída de carimbos</option>
+                  <option value="estorno">Estornos</option>
+                  <option value="configuracao">Configuração do painel</option>
+                </select>
+                <button class="filter-trigger" id="historyFilterTrigger" type="button" aria-haspopup="listbox" aria-expanded="false">
+                  <span class="filter-trigger-icon"><span class="ui-icon icon-filter"></span></span>
+                  <span class="filter-trigger-copy"><small>Filtrar histórico</small><strong id="historyFilterLabel">Todos os registros</strong></span>
+                  <span class="filter-chevron" aria-hidden="true"></span>
+                </button>
+                <div class="filter-menu" id="historyFilterMenu" role="listbox" aria-label="Filtrar histórico">
+                  <button class="filter-option selected" type="button" role="option" aria-selected="true" data-value="">
+                    <span class="filter-option-icon"><span class="ui-icon icon-history"></span></span>
+                    <span><strong>Todos os registros</strong><small>Visualizar o histórico completo</small></span>
+                    <span class="filter-check"><span class="ui-icon icon-check"></span></span>
+                  </button>
+                  <button class="filter-option" type="button" role="option" aria-selected="false" data-value="entrada">
+                    <span class="filter-option-icon entrada"><span class="ui-icon icon-import"></span></span>
+                    <span><strong>Entrada de carimbos</strong><small>Itens adicionados ao estoque</small></span>
+                    <span class="filter-check"><span class="ui-icon icon-check"></span></span>
+                  </button>
+                  <button class="filter-option" type="button" role="option" aria-selected="false" data-value="saida">
+                    <span class="filter-option-icon saida"><span class="ui-icon icon-export"></span></span>
+                    <span><strong>Saída de carimbos</strong><small>Itens retirados do estoque</small></span>
+                    <span class="filter-check"><span class="ui-icon icon-check"></span></span>
+                  </button>
+                  <button class="filter-option" type="button" role="option" aria-selected="false" data-value="estorno">
+                    <span class="filter-option-icon estorno"><span class="ui-icon icon-reverse"></span></span>
+                    <span><strong>Estornos</strong><small>Movimentações desfeitas</small></span>
+                    <span class="filter-check"><span class="ui-icon icon-check"></span></span>
+                  </button>
+                  <button class="filter-option" type="button" role="option" aria-selected="false" data-value="configuracao">
+                    <span class="filter-option-icon configuracao"><span class="ui-icon icon-settings"></span></span>
+                    <span><strong>Configuração do painel</strong><small>Alterações em cadastros</small></span>
+                    <span class="filter-check"><span class="ui-icon icon-check"></span></span>
+                  </button>
+                </div>
+              </div>
+              <div class="history-period-filter" id="historyPeriodFilter">
+                <span class="history-period-icon" aria-hidden="true"><span class="ui-icon icon-history"></span></span>
+                <div class="history-date-fields">
+                  <input id="historyStartDate" type="date" aria-label="Data inicial do histórico" />
+                  <span>até</span>
+                  <input id="historyEndDate" type="date" aria-label="Data final do histórico" />
+                </div>
+                <button class="history-period-apply" id="applyHistoryPeriod" type="button" aria-label="Aplicar período"><span class="ui-icon icon-search" aria-hidden="true"></span></button>
+                <button class="history-period-clear" id="clearHistoryPeriod" type="button" aria-label="Limpar período" hidden><span class="ui-icon icon-x"></span></button>
+              </div>
+              <button class="button secondary" id="exportStockButton"><span class="ui-icon icon-report"></span>Ver estoque</button>
+              <button class="button secondary history-search-button" id="historySearchButton" type="button" aria-label="Pesquisar no Histórico" aria-controls="historySearchPanel" aria-expanded="false"><span class="ui-icon icon-search" aria-hidden="true"></span></button>
+              <button class="button danger-button" id="clearMovementsButton"><span class="ui-icon icon-trash"></span>Excluir histórico</button>
+            </div>
+            <div class="history-search-panel" id="historySearchPanel" hidden>
+              <label class="history-search-field" for="historySearch">
+                <span class="ui-icon icon-search" aria-hidden="true"></span>
+                <span class="visually-hidden">Pesquisar no histórico</span>
+                <input id="historySearch" type="search" placeholder="Pesquisar produto, cor, atendente, tipo, observação ou data..." autocomplete="off" />
+              </label>
+              <button class="history-search-close" id="closeHistorySearch" type="button" aria-label="Fechar pesquisa"><span class="ui-icon icon-x"></span></button>
+            </div>
+          </div>
+          <div class="panel table-panel" id="historyTablePanel">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Data e hora</th><th>Registro</th><th>Atendente</th><th>Tipo</th><th>Quantidade</th><th>Observação</th><th></th></tr></thead>
+                <tbody id="movementsTable"></tbody>
+              </table>
+            </div>
+            <div class="history-load-more" id="historyLoadMore" hidden>
+              <span id="historyLoadProgress" aria-live="polite"></span>
+              <label class="history-month-selector">
+                <span class="ui-icon icon-history" aria-hidden="true"></span>
+                <span class="visually-hidden">Selecionar mês do Histórico</span>
+                <select id="historyMonthSelect" aria-controls="movementsTable"></select>
+                <span class="filter-chevron" aria-hidden="true"></span>
+              </label>
+            </div>
+          </div>
+          <div class="history-summary" id="historySummaryPanel" hidden>
+            <div class="summary-topline">
+              <div><p class="eyebrow">DESEMPENHO</p><h2>Movimentações em destaque</h2></div>
+              <div class="summary-switch" role="group" aria-label="Escolher gráfico do resumo">
+                <button class="active" type="button" data-summary-mode="products" aria-pressed="true"><span class="ui-icon icon-package"></span>Produtos</button>
+                <button type="button" data-summary-mode="sellers" aria-pressed="false"><span class="ui-icon icon-users"></span>Atendentes</button>
+              </div>
+            </div>
+            <article class="panel summary-chart-panel">
+              <div class="summary-chart-heading">
+                <div><span class="summary-chart-icon"><span class="ui-icon icon-chart"></span></span><div><p class="eyebrow" id="summaryChartEyebrow">RANKING DE SAÍDAS</p><h2 id="summaryChartTitle">Produtos mais movimentados</h2></div></div>
+                <div class="summary-chart-meta"><strong id="summaryChartTotal">0</strong><span id="summaryChartUnit">unidades baixadas</span></div>
+              </div>
+              <div class="summary-chart" id="summaryChart"></div>
+              <div class="summary-chart-foot">
+                <span class="summary-chart-note" id="summaryChartNote">Somente saídas válidas; estornos e correções de estoque não entram no cálculo.</span>
+                <div class="summary-chart-foot-actions">
+                  <div class="summary-type-switch" id="summaryTypeSwitch" role="group" aria-label="Filtrar gráfico por tipo de movimentação">
+                    <button class="active" type="button" data-summary-type="saida" aria-pressed="true"><span class="ui-icon icon-export"></span>Saídas</button>
+                    <button type="button" data-summary-type="entrada" aria-pressed="false"><span class="ui-icon icon-import"></span>Entradas</button>
+                  </div>
+                  <span class="summary-chart-period">Histórico completo</span>
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="view" id="registrationsView">
+          <div class="registration-intro">
+            <span class="registration-intro-icon"><span class="ui-icon icon-settings"></span></span>
+            <div><p class="eyebrow">ADMINISTRAÇÃO</p><h2>Central de Cadastro</h2></div>
+          </div>
+          <div class="registration-grid">
+            <article class="panel management-card">	
+              <div class="panel-heading">
+                <span class="registration-card-icon category"><span class="ui-icon icon-category"></span></span><div><p class="eyebrow">ORGANIZAÇÃO</p><h2>Categorias</h2></div>
+              </div>
+              <form class="inline-form" id="categoryForm">
+                <input name="name" required placeholder="Nome da nova categoria" />
+                <button class="button primary" type="submit"><span class="ui-icon icon-plus"></span>Adicionar</button>
+              </form>
+              <div class="simple-list" id="categoryList"></div>
+            </article>
+            <article class="panel management-card">
+              <div class="panel-heading">
+                <span class="registration-card-icon sellers"><span class="ui-icon icon-users"></span></span><div><p class="eyebrow">EQUIPE</p><h2>Atendentes</h2></div>
+              </div>
+              <form class="inline-form" id="sellerForm">
+                <input name="name" required placeholder="Nome do atendente" />
+                <button class="button primary" type="submit"><span class="ui-icon icon-user-plus"></span>Adicionar</button>
+              </form>
+              <div class="simple-list" id="sellerList"></div>
+            </article>
+            <article class="panel product-registration">
+              <div class="panel-heading">
+                <span class="registration-card-icon products"><span class="ui-icon icon-packages"></span></span><div><p class="eyebrow">ESTOQUE</p><h2>Produtos e cores</h2></div>
+              </div>
+              <form id="productForm" class="embedded-form">
+                <p class="form-note product-variation-note">Adicione uma ou mais cores. Cada cor terá seu próprio saldo inicial.</p>
+                <div class="form-grid">
+                  <label class="wide product-name-field">Nome/modelo<span class="product-name-autocomplete"><input name="name" id="productName" required placeholder="Ex.: Trodat 4912" autocomplete="off" autocorrect="off" spellcheck="false" aria-autocomplete="list" aria-controls="productNameSuggestions" aria-expanded="false" /><span class="product-name-suggestions" id="productNameSuggestions" role="listbox" hidden></span></span></label>
+                  <p class="wide existing-product-note" id="existingProductNote" hidden></p>
+                  <label id="productCategoryField">Categoria<select name="category" id="productCategory" required></select></label>
+                  <label id="productSizeField">Medida<input name="size" id="productSize" placeholder="Ex.: 47x18mm" /></label>
+                  <div class="wide product-image-field">
+                    <div class="product-image-preview" id="productImagePreview"><span class="ui-icon icon-package"></span></div>
+                    <div><strong>Imagem do produto</strong><small>JPG, PNG ou WebP. A imagem será ajustada automaticamente.</small></div>
+                    <label class="button secondary image-upload-button"><span class="ui-icon icon-import"></span>Selecionar imagem<input type="file" id="productImageInput" accept="image/jpeg,image/png,image/webp" /></label>
+                  </div>
+                  <div class="wide color-builder">
+                    <label>Nome da cor<input name="colorName" id="productColorName" placeholder="Ex.: Preto" /></label>
+                    <div class="rgb-field">
+                      <span class="rgb-field-label">Cor RGB</span>
+                      <div class="rgb-trigger-group">
+                        <button type="button" class="rgb-trigger" id="rgbPickerTrigger" aria-expanded="false"><span id="rgbTriggerSwatch"></span><output id="productColorHex">#20242B</output></button>
+                        <button type="button" class="rgb-add-second" id="addSecondRgb" aria-label="Adicionar segunda cor">+</button>
+                      </div>
+                      <div class="rgb-panel closed" id="rgbPickerPanel">
+                        <div class="rgb-panel-heading">
+                          <div class="rgb-channel-tabs"><button type="button" class="active" data-rgb-channel="primary">Cor 1</button><button type="button" data-rgb-channel="secondary" id="secondaryRgbTab" hidden>Cor 2</button></div>
+                          <button type="button" id="removeSecondRgb" class="rgb-remove-second" aria-label="Remover segunda cor" hidden>−</button>
+                          <button type="button" id="closeRgbPicker" aria-label="Fechar seletor RGB">×</button>
+                        </div>
+                        <div class="rgb-saturation" id="rgbSaturation" role="slider" aria-label="Saturação e brilho"><span id="rgbSaturationCursor"></span></div>
+                        <div class="rgb-hue-row"><span class="rgb-preview" id="rgbPreview"></span><input id="rgbHue" type="range" min="0" max="360" value="218" aria-label="Tonalidade" /></div>
+                        <div class="rgb-number-fields">
+                          <label><input id="rgbRed" type="number" min="0" max="255" value="32" /><span>R</span></label>
+                          <label><input id="rgbGreen" type="number" min="0" max="255" value="36" /><span>G</span></label>
+                          <label><input id="rgbBlue" type="number" min="0" max="255" value="43" /><span>B</span></label>
+                        </div>
+                        <input name="colorRgb" id="productColorRgb" type="hidden" value="#20242b" />
+                        <input name="colorRgb2" id="productColorRgb2" type="hidden" value="" />
+                      </div>
+                    </div>
+                    <label>Saldo inicial<input name="colorStock" id="productColorStock" type="number" min="0" value="0" /></label>
+                    <div class="color-file-field"><span>Imagem da cor</span><label class="file-picker-button"><span class="ui-icon icon-import"></span><span>Selecionar imagem</span><input name="colorImage" id="productColorImage" type="file" accept="image/jpeg,image/png,image/webp" /></label><small id="productColorImageName">Nenhuma imagem selecionada</small></div>
+                    <button type="button" class="button secondary add-color-button" id="addProductColorButton" aria-label="Adicionar cor"><span aria-hidden="true">+</span>Adicionar cor</button>
+                  </div>
+                  <div class="wide product-color-list" id="productColorList"></div>
+                  <section class="wide registered-colors-manager" id="registeredColorsManager" hidden>
+                    <div class="registered-colors-heading"><div><strong>Cores cadastradas</strong><small>Edite nomes, tons e imagens e confirme tudo no botão Salvar produto.</small></div></div>
+                    <div id="registeredColorList"></div>
+                  </section>
+                </div>
+                <div class="embedded-actions"><button type="submit" class="button primary"><span class="ui-icon icon-save"></span>Salvar produto</button></div>
+              </form>
+            </article>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <button class="admin-access-button" id="adminAccessButton" type="button" aria-label="Acesso administrativo" data-tooltip="Acesso administrativo">
+      <span class="ui-icon icon-settings"></span>
+      <span class="admin-access-dot" aria-hidden="true"></span>
+    </button>
+
+    <dialog id="movementDialog">
+      <form id="movementForm">
+        <div class="dialog-heading"><div><p class="eyebrow">ESTOQUE</p><h2>Nova movimentação</h2></div><button type="button" class="close-button dialog-cancel" aria-label="Fechar"><span class="ui-icon icon-x"></span></button></div>
+        <div class="form-grid">
+          <label>Atendente<select name="sellerId" id="movementSeller" required></select></label>
+          <label>Tipo<select name="type" id="movementType" required><option value="entrada">Entrada</option><option value="saida" selected>Saída</option></select></label>
+          <div class="wide movement-product-field">
+            <span class="movement-product-label">Produto</span>
+            <input name="productId" id="movementProduct" type="hidden" />
+            <div class="movement-product-picker" id="movementProductPicker" role="listbox" aria-label="Selecionar produto"></div>
+          </div>
+          <div class="wide movement-color-field"><span class="movement-color-label">Cores <small>Selecione uma ou mais</small></span><span class="variant-picker" id="movementVariantGrid" role="group" aria-label="Selecionar uma ou mais cores"></span></div>
+          <div class="wide movement-add-line">
+            <label class="stock-correction-option" id="movementStockCorrectionOption">
+              <input name="stockCorrection" id="movementStockCorrection" type="checkbox" />
+              <span class="stock-correction-check"><span class="ui-icon icon-check"></span></span>
+              <span class="stock-correction-copy"><strong>Correção de estoque</strong><small>Ajusta o saldo sem contabilizar no Resumo.</small></span>
+            </label>
+            <label class="movement-quantity-field">Quantidade
+              <span class="quantity-stepper">
+                <button type="button" class="quantity-step-button" id="decreaseMovementQuantity" aria-label="Diminuir quantidade"><span aria-hidden="true">−</span></button>
+                <input name="quantity" type="number" min="1" value="1" required aria-label="Quantidade" />
+                <button type="button" class="quantity-step-button" id="increaseMovementQuantity" aria-label="Aumentar quantidade"><span aria-hidden="true">+</span></button>
+              </span>
+            </label>
+            <button type="button" class="button secondary" id="addMovementItem"><span class="ui-icon icon-plus"></span>Adicionar à movimentação</button>
+          </div>
+          <div class="wide movement-command" id="movementCommandList"></div>
+          <label class="wide">Observação<input name="note" id="movementNote" placeholder="Obrigatória para saídas" /></label>
+        </div>
+        <div class="dialog-actions"><button type="button" class="button secondary dialog-cancel"><span class="ui-icon icon-x"></span>Cancelar</button><button type="submit" class="button primary"><span class="ui-icon icon-check"></span>Registrar comanda</button></div>
+      </form>
+    </dialog>
+
+    <dialog id="zeroStockDialog" class="zero-stock-dialog">
+      <div class="zero-stock-dialog-content">
+        <div class="dialog-heading">
+          <div><p class="eyebrow">ATENÇÃO</p><h2>Produtos sem estoque</h2></div>
+          <button type="button" class="close-button dialog-cancel" aria-label="Fechar"><span class="ui-icon icon-x"></span></button>
+        </div>
+        <p class="form-note">Produtos totalmente zerados e cores individuais sem saldo.</p>
+        <div class="table-wrap zero-stock-table-wrap">
+          <table>
+            <thead><tr><th>Produto</th><th>Cor</th><th>Categoria</th><th>Medida</th><th>Situação</th></tr></thead>
+            <tbody id="zeroStockTable"></tbody>
+          </table>
+        </div>
+        <div class="dialog-actions"><button type="button" class="button secondary dialog-cancel"><span class="ui-icon icon-x"></span>Fechar</button></div>
+      </div>
+    </dialog>
+
+    <dialog id="editProductDialog">
+      <form id="editProductForm">
+        <div class="dialog-heading">
+          <div><p class="eyebrow">PRODUTO</p><h2>Editar produto</h2></div>
+          <button type="button" class="close-button dialog-cancel" aria-label="Fechar" data-tooltip="Fechar"><span class="ui-icon icon-x"></span></button>
+        </div>
+        <div class="form-grid">
+          <label class="wide">Nome/modelo<input name="name" required /></label>
+          <label>Categoria<select name="category" id="editProductCategory" required></select></label>
+          <label>Medida<input name="size" /></label>
+          <div class="wide product-image-field edit-product-image-field">
+            <div class="product-image-preview" id="editProductImagePreview"><span class="ui-icon icon-package"></span></div>
+            <div><strong>Imagem do produto</strong><small>Troque ou remova a imagem atual.</small></div>
+            <div class="product-image-actions">
+              <label class="button secondary image-upload-button"><span class="ui-icon icon-import"></span>Selecionar nova imagem<input type="file" id="editProductImageInput" accept="image/jpeg,image/png,image/webp" /></label>
+              <button type="button" class="button image-remove-button" id="removeProductImageButton">Remover</button>
+            </div>
+          </div>
+        </div>
+        <p class="form-note">A data original de criação será preservada.</p>
+        <div class="dialog-actions">
+          <button type="button" class="button secondary dialog-cancel"><span class="ui-icon icon-x"></span>Cancelar</button>
+          <button type="submit" class="button primary"><span class="ui-icon icon-save"></span>Salvar alterações</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="editCategoryDialog">
+      <form id="editCategoryForm">
+        <div class="dialog-heading">
+          <div><p class="eyebrow">ORGANIZAÇÃO</p><h2>Editar categoria</h2></div>
+          <button type="button" class="close-button dialog-cancel" aria-label="Fechar" data-tooltip="Fechar"><span class="ui-icon icon-x"></span></button>
+        </div>
+        <div class="form-grid"><label class="wide">Nome da categoria<input name="name" required /></label></div>
+        <div class="dialog-actions">
+          <button type="button" class="button secondary dialog-cancel"><span class="ui-icon icon-x"></span>Cancelar</button>
+          <button type="submit" class="button primary"><span class="ui-icon icon-save"></span>Salvar alterações</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="editSellerDialog">
+      <form id="editSellerForm">
+        <div class="dialog-heading">
+          <div><p class="eyebrow">EQUIPE</p><h2>Editar atendente</h2></div>
+          <button type="button" class="close-button dialog-cancel" aria-label="Fechar" data-tooltip="Fechar"><span class="ui-icon icon-x"></span></button>
+        </div>
+        <div class="form-grid"><label class="wide">Nome do atendente<input name="name" required /></label></div>
+        <div class="dialog-actions">
+          <button type="button" class="button secondary dialog-cancel"><span class="ui-icon icon-x"></span>Cancelar</button>
+          <button type="submit" class="button primary"><span class="ui-icon icon-save"></span>Salvar alterações</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="confirmDialog" class="confirm-dialog">
+      <div class="confirm-content">
+        <div class="confirm-symbol"><span class="ui-icon icon-alert"></span></div>
+        <div>
+          <p class="eyebrow">CONFIRMAÇÃO</p>
+          <h2 id="confirmTitle">Confirmar ação</h2>
+          <p id="confirmMessage"></p>
+        </div>
+      </div>
+      <div class="dialog-actions">
+        <button type="button" class="button secondary" id="confirmCancel"><span class="ui-icon icon-x"></span>Cancelar</button>
+        <button type="button" class="button danger-confirm" id="confirmAccept"><span class="ui-icon icon-trash"></span>Excluir</button>
+      </div>
+    </dialog>
+
+    <dialog id="reversalDialog">
+      <form id="reversalForm">
+        <div class="dialog-heading">
+          <div><p class="eyebrow">CORREÇÃO</p><h2>Estornar movimentação</h2></div>
+          <button type="button" class="close-button dialog-cancel" aria-label="Fechar" data-tooltip="Fechar"><span class="ui-icon icon-x"></span></button>
+        </div>
+        <p class="form-note" id="reversalDescription"></p>
+        <label class="linked-reversal-option" id="reversalLinkedOption" hidden>
+          <input type="checkbox" name="includeLinked" id="reversalIncludeLinked" />
+          <span class="linked-reversal-check" aria-hidden="true"><span class="ui-icon icon-check"></span></span>
+          <span class="linked-reversal-copy">
+            <strong id="reversalLinkedTitle">Estornar movimentações vinculadas</strong>
+            <small id="reversalLinkedDescription">Inclui os outros itens lançados na mesma comanda.</small>
+          </span>
+        </label>
+        <div class="form-grid">
+          <label class="wide">Atendente responsável<select name="sellerId" id="reversalSeller" required></select></label>
+          <label class="wide">Motivo do estorno<textarea name="reason" required placeholder="Qual o motivo do estorno?"></textarea></label>
+        </div>
+        <div class="dialog-actions">
+          <button type="button" class="button secondary dialog-cancel"><span class="ui-icon icon-x"></span>Cancelar</button>
+          <button type="submit" class="button primary"><span class="ui-icon icon-reverse"></span>Confirmar estorno</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="adminAccessDialog" class="admin-dialog">
+      <form id="adminAccessForm">
+        <div class="dialog-heading">
+          <div><p class="eyebrow">ÁREA RESTRITA</p><h2 id="adminDialogTitle">Acesso administrativo</h2></div>
+          <button type="button" class="close-button dialog-cancel" aria-label="Fechar" data-tooltip="Fechar"><span class="ui-icon icon-x"></span></button>
+        </div>
+        <div class="admin-dialog-intro">
+          <span class="admin-dialog-icon"><span class="ui-icon icon-settings"></span></span>
+          <p id="adminDialogMessage">Informe a senha para liberar a aba Cadastro.</p>
+        </div>
+        <div class="form-grid">
+          <label class="wide">Senha<input name="password" id="adminPassword" type="password" minlength="4" autocomplete="current-password" required /></label>
+          <label class="wide" id="adminPasswordConfirmField" hidden>Confirmar senha<input name="passwordConfirm" id="adminPasswordConfirm" type="password" minlength="4" autocomplete="new-password" /></label>
+        </div>
+        <p class="admin-error" id="adminError" role="alert"></p>
+        <div class="dialog-actions">
+          <button type="button" class="button secondary dialog-cancel"><span class="ui-icon icon-x"></span>Cancelar</button>
+          <button type="submit" class="button primary" id="adminSubmitButton"><span class="ui-icon icon-check"></span>Liberar Cadastro</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="catalogDialog" class="catalog-dialog">
+      <div class="catalog-dialog-content">
+        <div class="dialog-heading">
+          <div><p class="eyebrow">CATÁLOGO</p><h2 id="catalogTitle">Cores Disponíveis</h2></div>
+          <button type="button" class="close-button dialog-cancel" aria-label="Fechar"><span class="ui-icon icon-x"></span></button>
+        </div>
+        <img id="catalogPreview" class="catalog-preview" alt="Prévia do catálogo de cores" />
+        <div class="dialog-actions">
+          <button type="button" class="button secondary" id="downloadCatalogPng"><span class="ui-icon icon-download"></span>Baixar imagem</button>
+          <button type="button" class="button primary" id="downloadCatalogPdf"><span class="ui-icon icon-download"></span>Baixar PDF</button>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog id="imagePreviewDialog" class="image-preview-dialog">
+      <div class="image-preview-dialog-content">
+        <button type="button" class="close-button dialog-cancel" aria-label="Fechar"><span class="ui-icon icon-x"></span></button>
+        <img id="imagePreviewLarge" alt="Imagem ampliada do produto" />
+        <div class="image-preview-caption"><strong id="imagePreviewTitle"></strong><span id="imagePreviewSize"></span></div>
+      </div>
+    </dialog>
+
+    <div class="toast" id="toast" role="status"></div>
+    <script src="app.js?v=20260915-06"></script>
+  </body>
+</html>
